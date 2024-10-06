@@ -1,0 +1,42 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: sudo apt-get update && sudo apt-get install -y cmake gcc-arm-none-eabi
+
+    - name: Show working directory
+      run: pwd
+
+    - name: List root files
+      run: ls -la
+
+    - name: Verify Linker Script
+      run: ls -l ${GITHUB_WORKSPACE}/STM32H743ZITX_FLASH.ld
+
+    - name: Create build directory
+      run: mkdir build
+
+    - name: Configure with CMake
+      working-directory: ./build
+      run: cmake ..
+
+    - name: Build with Make
+      working-directory: ./build
+      run: make
+
+    - name: Run tests
+      working-directory: ./build
+      run: ctest --output-on-failure

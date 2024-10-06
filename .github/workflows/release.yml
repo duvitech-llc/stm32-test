@@ -1,0 +1,54 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'   # This triggers when a tag starting with 'v' is pushed (e.g., v1.0.0)
+
+jobs:
+  release:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: sudo apt-get update && sudo apt-get install -y cmake gcc-arm-none-eabi
+
+    - name: Create build directory
+      run: mkdir build
+
+    - name: Configure with CMake
+      working-directory: ./build
+      run: cmake ..
+
+    - name: Build with Make
+      working-directory: ./build
+      run: make
+
+    - name: Get tag name
+      id: get_tag
+      run: echo "tag_name=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+    - name: Create release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ env.tag_name }}
+        release_name: Release ${{ env.tag_name }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./build/stm32-test.elf   # Path to your build artifact
+        asset_name: stm32-test.elf
+        asset_content_type: application/octet-stream
