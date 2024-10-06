@@ -19,7 +19,7 @@ docker run --rm -it -v %cd%:/nucleo/ -w /nucleo/ cmake-on-stm32
 ```
 
 ### Build the firmware
-Typing the following commands will buld the firmware elf file.
+Typing the following commands will build the firmware elf file.
 
 ```
 mkdir build
