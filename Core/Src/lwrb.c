@@ -34,43 +34,48 @@
 #include "lwrb.h"
 
 /* Memory set and copy functions */
-#define BUF_MEMSET                      memset
-#define BUF_MEMCPY                      memcpy
+#define BUF_MEMSET memset
+#define BUF_MEMCPY memcpy
 
 #if LWRB_USE_MAGIC
-#define BUF_IS_VALID(b)                 ((b) != NULL && (b)->magic1 == 0xDEADBEEF && (b)->magic2 == ~0xDEADBEEF && (b)->buff != NULL && (b)->size > 0)
+#define BUF_IS_VALID(b)                                                        \
+  ((b) != NULL && (b)->magic1 == 0xDEADBEEF && (b)->magic2 == ~0xDEADBEEF &&   \
+   (b)->buff != NULL && (b)->size > 0)
 #else
-#define BUF_IS_VALID(b)                 ((b) != NULL && (b)->buff != NULL && (b)->size > 0)
+#define BUF_IS_VALID(b) ((b) != NULL && (b)->buff != NULL && (b)->size > 0)
 #endif /* LWRB_USE_MAGIC */
-#define BUF_MIN(x, y)                   ((x) < (y) ? (x) : (y))
-#define BUF_MAX(x, y)                   ((x) > (y) ? (x) : (y))
-#define BUF_SEND_EVT(b, type, bp)       do { if ((b)->evt_fn != NULL) { (b)->evt_fn((b), (type), (bp)); } } while (0)
+#define BUF_MIN(x, y) ((x) < (y) ? (x) : (y))
+#define BUF_MAX(x, y) ((x) > (y) ? (x) : (y))
+#define BUF_SEND_EVT(b, type, bp)                                              \
+  do {                                                                         \
+    if ((b)->evt_fn != NULL) {                                                 \
+      (b)->evt_fn((b), (type), (bp));                                          \
+    }                                                                          \
+  } while (0)
 
 /**
- * \brief           Initialize buffer handle to default values with size and buffer data array
- * \param[in]       buff: Buffer handle
- * \param[in]       buffdata: Pointer to memory to use as buffer data
- * \param[in]       size: Size of `buffdata` in units of bytes
- *                      Maximum number of bytes buffer can hold is `size - 1`
- * \return          `1` on success, `0` otherwise
+ * \brief           Initialize buffer handle to default values with size and
+ * buffer data array \param[in]       buff: Buffer handle \param[in] buffdata:
+ * Pointer to memory to use as buffer data \param[in]       size: Size of
+ * `buffdata` in units of bytes Maximum number of bytes buffer can hold is `size
+ * - 1` \return          `1` on success, `0` otherwise
  */
-uint8_t
-lwrb_init(LWRB_VOLATILE lwrb_t* buff, void* buffdata, size_t size) {
-    if (buff == NULL || buffdata == NULL || size == 0) {
-        return 0;
-    }
+uint8_t lwrb_init(LWRB_VOLATILE lwrb_t *buff, void *buffdata, size_t size) {
+  if (buff == NULL || buffdata == NULL || size == 0) {
+    return 0;
+  }
 
-    BUF_MEMSET((void*)buff, 0x00, sizeof(*buff));
+  BUF_MEMSET((void *)buff, 0x00, sizeof(*buff));
 
-    buff->size = size;
-    buff->buff = buffdata;
+  buff->size = size;
+  buff->buff = buffdata;
 
 #if LWRB_USE_MAGIC
-    buff->magic1 = 0xDEADBEEF;
-    buff->magic2 = ~0xDEADBEEF;
+  buff->magic1 = 0xDEADBEEF;
+  buff->magic2 = ~0xDEADBEEF;
 #endif /* LWRB_USE_MAGIC */
 
-    return 1;
+  return 1;
 }
 
 /**
@@ -78,10 +83,7 @@ lwrb_init(LWRB_VOLATILE lwrb_t* buff, void* buffdata, size_t size) {
  * \param[in]       buff: Buffer handle
  * \return          `1` if ready, `0` otherwise
  */
-uint8_t
-lwrb_is_ready(LWRB_VOLATILE lwrb_t* buff) {
-    return BUF_IS_VALID(buff);
-}
+uint8_t lwrb_is_ready(LWRB_VOLATILE lwrb_t *buff) { return BUF_IS_VALID(buff); }
 
 /**
  * \brief           Free buffer memory
@@ -89,11 +91,10 @@ lwrb_is_ready(LWRB_VOLATILE lwrb_t* buff) {
  *                  it just sets buffer handle to `NULL`
  * \param[in]       buff: Buffer handle
  */
-void
-lwrb_free(LWRB_VOLATILE lwrb_t* buff) {
-    if (BUF_IS_VALID(buff)) {
-        buff->buff = NULL;
-    }
+void lwrb_free(LWRB_VOLATILE lwrb_t *buff) {
+  if (BUF_IS_VALID(buff)) {
+    buff->buff = NULL;
+  }
 }
 
 /**
@@ -101,103 +102,102 @@ lwrb_free(LWRB_VOLATILE lwrb_t* buff) {
  * \param[in]       buff: Buffer handle
  * \param[in]       evt_fn: Callback function
  */
-void
-lwrb_set_evt_fn(LWRB_VOLATILE lwrb_t* buff, lwrb_evt_fn evt_fn) {
-    if (BUF_IS_VALID(buff)) {
-        buff->evt_fn = evt_fn;
-    }
+void lwrb_set_evt_fn(LWRB_VOLATILE lwrb_t *buff, lwrb_evt_fn evt_fn) {
+  if (BUF_IS_VALID(buff)) {
+    buff->evt_fn = evt_fn;
+  }
 }
 
 /**
  * \brief           Write data to buffer.
- * Copies data from `data` array to buffer and marks buffer as full for maximum `btw` number of bytes
+ * Copies data from `data` array to buffer and marks buffer as full for maximum
+ * `btw` number of bytes
  *
  * \param[in]       buff: Buffer handle
  * \param[in]       data: Pointer to data to write into buffer
  * \param[in]       btw: Number of bytes to write
  * \return          Number of bytes written to buffer.
- *                      When returned value is less than `btw`, there was no enough memory available
- *                      to copy full data array
+ *                      When returned value is less than `btw`, there was no
+ * enough memory available to copy full data array
  */
-size_t
-lwrb_write(LWRB_VOLATILE lwrb_t* buff, const void* data, size_t btw) {
-    size_t tocopy, free;
-    const uint8_t* d = data;
+size_t lwrb_write(LWRB_VOLATILE lwrb_t *buff, const void *data, size_t btw) {
+  size_t tocopy, free;
+  const uint8_t *d = data;
 
-    if (!BUF_IS_VALID(buff) || data == NULL || btw == 0) {
-        return 0;
-    }
+  if (!BUF_IS_VALID(buff) || data == NULL || btw == 0) {
+    return 0;
+  }
 
-    /* Calculate maximum number of bytes available to write */
-    free = lwrb_get_free(buff);
-    btw = BUF_MIN(free, btw);
-    if (btw == 0) {
-        return 0;
-    }
+  /* Calculate maximum number of bytes available to write */
+  free = lwrb_get_free(buff);
+  btw = BUF_MIN(free, btw);
+  if (btw == 0) {
+    return 0;
+  }
 
-    /* Step 1: Write data to linear part of buffer */
-    tocopy = BUF_MIN(buff->size - buff->w, btw);
-    BUF_MEMCPY(&buff->buff[buff->w], d, tocopy);
-    buff->w += tocopy;
-    btw -= tocopy;
+  /* Step 1: Write data to linear part of buffer */
+  tocopy = BUF_MIN(buff->size - buff->w, btw);
+  BUF_MEMCPY(&buff->buff[buff->w], d, tocopy);
+  buff->w += tocopy;
+  btw -= tocopy;
 
-    /* Step 2: Write data to beginning of buffer (overflow part) */
-    if (btw > 0) {
-        BUF_MEMCPY(buff->buff, &d[tocopy], btw);
-        buff->w = btw;
-    }
+  /* Step 2: Write data to beginning of buffer (overflow part) */
+  if (btw > 0) {
+    BUF_MEMCPY(buff->buff, &d[tocopy], btw);
+    buff->w = btw;
+  }
 
-    /* Step 3: Check end of buffer */
-    if (buff->w >= buff->size) {
-        buff->w = 0;
-    }
-    BUF_SEND_EVT(buff, LWRB_EVT_WRITE, tocopy + btw);
-    return tocopy + btw;
+  /* Step 3: Check end of buffer */
+  if (buff->w >= buff->size) {
+    buff->w = 0;
+  }
+  BUF_SEND_EVT(buff, LWRB_EVT_WRITE, tocopy + btw);
+  return tocopy + btw;
 }
 
 /**
  * \brief           Read data from buffer.
- * Copies data from buffer to `data` array and marks buffer as free for maximum `btr` number of bytes
+ * Copies data from buffer to `data` array and marks buffer as free for maximum
+ * `btr` number of bytes
  *
  * \param[in]       buff: Buffer handle
  * \param[out]      data: Pointer to output memory to copy buffer data to
  * \param[in]       btr: Number of bytes to read
  * \return          Number of bytes read and copied to data array
  */
-size_t
-lwrb_read(LWRB_VOLATILE lwrb_t* buff, void* data, size_t btr) {
-    size_t tocopy, full;
-    uint8_t* d = data;
+size_t lwrb_read(LWRB_VOLATILE lwrb_t *buff, void *data, size_t btr) {
+  size_t tocopy, full;
+  uint8_t *d = data;
 
-    if (!BUF_IS_VALID(buff) || data == NULL || btr == 0) {
-        return 0;
-    }
+  if (!BUF_IS_VALID(buff) || data == NULL || btr == 0) {
+    return 0;
+  }
 
-    /* Calculate maximum number of bytes available to read */
-    full = lwrb_get_full(buff);
-    btr = BUF_MIN(full, btr);
-    if (btr == 0) {
-        return 0;
-    }
+  /* Calculate maximum number of bytes available to read */
+  full = lwrb_get_full(buff);
+  btr = BUF_MIN(full, btr);
+  if (btr == 0) {
+    return 0;
+  }
 
-    /* Step 1: Read data from linear part of buffer */
-    tocopy = BUF_MIN(buff->size - buff->r, btr);
-    BUF_MEMCPY(d, &buff->buff[buff->r], tocopy);
-    buff->r += tocopy;
-    btr -= tocopy;
+  /* Step 1: Read data from linear part of buffer */
+  tocopy = BUF_MIN(buff->size - buff->r, btr);
+  BUF_MEMCPY(d, &buff->buff[buff->r], tocopy);
+  buff->r += tocopy;
+  btr -= tocopy;
 
-    /* Step 2: Read data from beginning of buffer (overflow part) */
-    if (btr > 0) {
-        BUF_MEMCPY(&d[tocopy], buff->buff, btr);
-        buff->r = btr;
-    }
+  /* Step 2: Read data from beginning of buffer (overflow part) */
+  if (btr > 0) {
+    BUF_MEMCPY(&d[tocopy], buff->buff, btr);
+    buff->r = btr;
+  }
 
-    /* Step 3: Check end of buffer */
-    if (buff->r >= buff->size) {
-        buff->r = 0;
-    }
-    BUF_SEND_EVT(buff, LWRB_EVT_READ, tocopy + btr);
-    return tocopy + btr;
+  /* Step 3: Check end of buffer */
+  if (buff->r >= buff->size) {
+    buff->r = 0;
+  }
+  BUF_SEND_EVT(buff, LWRB_EVT_READ, tocopy + btr);
+  return tocopy + btr;
 }
 
 /**
@@ -208,46 +208,46 @@ lwrb_read(LWRB_VOLATILE lwrb_t* buff, void* data, size_t btr) {
  * \param[in]       btp: Number of bytes to peek
  * \return          Number of bytes peeked and written to output array
  */
-size_t
-lwrb_peek(LWRB_VOLATILE lwrb_t* buff, size_t skip_count, void* data, size_t btp) {
-    size_t full, tocopy, r;
-    uint8_t* d = data;
+size_t lwrb_peek(LWRB_VOLATILE lwrb_t *buff, size_t skip_count, void *data,
+                 size_t btp) {
+  size_t full, tocopy, r;
+  uint8_t *d = data;
 
-    if (!BUF_IS_VALID(buff) || data == NULL || btp == 0) {
-        return 0;
-    }
+  if (!BUF_IS_VALID(buff) || data == NULL || btp == 0) {
+    return 0;
+  }
 
-    r = buff->r;
+  r = buff->r;
 
-    /* Calculate maximum number of bytes available to read */
-    full = lwrb_get_full(buff);
+  /* Calculate maximum number of bytes available to read */
+  full = lwrb_get_full(buff);
 
-    /* Skip beginning of buffer */
-    if (skip_count >= full) {
-        return 0;
-    }
-    r += skip_count;
-    full -= skip_count;
-    if (r >= buff->size) {
-        r -= buff->size;
-    }
+  /* Skip beginning of buffer */
+  if (skip_count >= full) {
+    return 0;
+  }
+  r += skip_count;
+  full -= skip_count;
+  if (r >= buff->size) {
+    r -= buff->size;
+  }
 
-    /* Check maximum number of bytes available to read after skip */
-    btp = BUF_MIN(full, btp);
-    if (btp == 0) {
-        return 0;
-    }
+  /* Check maximum number of bytes available to read after skip */
+  btp = BUF_MIN(full, btp);
+  if (btp == 0) {
+    return 0;
+  }
 
-    /* Step 1: Read data from linear part of buffer */
-    tocopy = BUF_MIN(buff->size - r, btp);
-    BUF_MEMCPY(d, &buff->buff[r], tocopy);
-    btp -= tocopy;
+  /* Step 1: Read data from linear part of buffer */
+  tocopy = BUF_MIN(buff->size - r, btp);
+  BUF_MEMCPY(d, &buff->buff[r], tocopy);
+  btp -= tocopy;
 
-    /* Step 2: Read data from beginning of buffer (overflow part) */
-    if (btp > 0) {
-        BUF_MEMCPY(&d[tocopy], buff->buff, btp);
-    }
-    return tocopy + btp;
+  /* Step 2: Read data from beginning of buffer (overflow part) */
+  if (btp > 0) {
+    BUF_MEMCPY(&d[tocopy], buff->buff, btp);
+  }
+  return tocopy + btp;
 }
 
 /**
@@ -255,27 +255,26 @@ lwrb_peek(LWRB_VOLATILE lwrb_t* buff, size_t skip_count, void* data, size_t btp)
  * \param[in]       buff: Buffer handle
  * \return          Number of free bytes in memory
  */
-size_t
-lwrb_get_free(LWRB_VOLATILE lwrb_t* buff) {
-    size_t size, w, r;
+size_t lwrb_get_free(LWRB_VOLATILE lwrb_t *buff) {
+  size_t size, w, r;
 
-    if (!BUF_IS_VALID(buff)) {
-        return 0;
-    }
+  if (!BUF_IS_VALID(buff)) {
+    return 0;
+  }
 
-    /* Use temporary values in case they are changed during operations */
-    w = buff->w;
-    r = buff->r;
-    if (w == r) {
-        size = buff->size;
-    } else if (r > w) {
-        size = r - w;
-    } else {
-        size = buff->size - (w - r);
-    }
+  /* Use temporary values in case they are changed during operations */
+  w = buff->w;
+  r = buff->r;
+  if (w == r) {
+    size = buff->size;
+  } else if (r > w) {
+    size = r - w;
+  } else {
+    size = buff->size - (w - r);
+  }
 
-    /* Buffer free size is always 1 less than actual size */
-    return size - 1;
+  /* Buffer free size is always 1 less than actual size */
+  return size - 1;
 }
 
 /**
@@ -283,38 +282,36 @@ lwrb_get_free(LWRB_VOLATILE lwrb_t* buff) {
  * \param[in]       buff: Buffer handle
  * \return          Number of bytes ready to be read
  */
-size_t
-lwrb_get_full(LWRB_VOLATILE lwrb_t* buff) {
-    size_t w, r, size;
+size_t lwrb_get_full(LWRB_VOLATILE lwrb_t *buff) {
+  size_t w, r, size;
 
-    if (!BUF_IS_VALID(buff)) {
-        return 0;
-    }
+  if (!BUF_IS_VALID(buff)) {
+    return 0;
+  }
 
-    /* Use temporary values in case they are changed during operations */
-    w = buff->w;
-    r = buff->r;
-    if (w == r) {
-        size = 0;
-    } else if (w > r) {
-        size = w - r;
-    } else {
-        size = buff->size - (r - w);
-    }
-    return size;
+  /* Use temporary values in case they are changed during operations */
+  w = buff->w;
+  r = buff->r;
+  if (w == r) {
+    size = 0;
+  } else if (w > r) {
+    size = w - r;
+  } else {
+    size = buff->size - (r - w);
+  }
+  return size;
 }
 
 /**
  * \brief           Resets buffer to default values. Buffer size is not modified
  * \param[in]       buff: Buffer handle
  */
-void
-lwrb_reset(LWRB_VOLATILE lwrb_t* buff) {
-    if (BUF_IS_VALID(buff)) {
-        buff->w = 0;
-        buff->r = 0;
-        BUF_SEND_EVT(buff, LWRB_EVT_RESET, 0);
-    }
+void lwrb_reset(LWRB_VOLATILE lwrb_t *buff) {
+  if (BUF_IS_VALID(buff)) {
+    buff->w = 0;
+    buff->r = 0;
+    BUF_SEND_EVT(buff, LWRB_EVT_RESET, 0);
+  }
 }
 
 /**
@@ -322,65 +319,63 @@ lwrb_reset(LWRB_VOLATILE lwrb_t* buff) {
  * \param[in]       buff: Buffer handle
  * \return          Linear buffer start address
  */
-void*
-lwrb_get_linear_block_read_address(LWRB_VOLATILE lwrb_t* buff) {
-    if (!BUF_IS_VALID(buff)) {
-        return NULL;
-    }
-    return &buff->buff[buff->r];
+void *lwrb_get_linear_block_read_address(LWRB_VOLATILE lwrb_t *buff) {
+  if (!BUF_IS_VALID(buff)) {
+    return NULL;
+  }
+  return &buff->buff[buff->r];
 }
 
 /**
- * \brief           Get length of linear block address before it overflows for read operation
- * \param[in]       buff: Buffer handle
- * \return          Linear buffer size in units of bytes for read operation
+ * \brief           Get length of linear block address before it overflows for
+ * read operation \param[in]       buff: Buffer handle \return          Linear
+ * buffer size in units of bytes for read operation
  */
-size_t
-lwrb_get_linear_block_read_length(LWRB_VOLATILE lwrb_t* buff) {
-    size_t w, r, len;
+size_t lwrb_get_linear_block_read_length(LWRB_VOLATILE lwrb_t *buff) {
+  size_t w, r, len;
 
-    if (!BUF_IS_VALID(buff)) {
-        return 0;
-    }
+  if (!BUF_IS_VALID(buff)) {
+    return 0;
+  }
 
-    /* Use temporary values in case they are changed during operations */
-    w = buff->w;
-    r = buff->r;
-    if (w > r) {
-        len = w - r;
-    } else if (r > w) {
-        len = buff->size - r;
-    } else {
-        len = 0;
-    }
-    return len;
+  /* Use temporary values in case they are changed during operations */
+  w = buff->w;
+  r = buff->r;
+  if (w > r) {
+    len = w - r;
+  } else if (r > w) {
+    len = buff->size - r;
+  } else {
+    len = 0;
+  }
+  return len;
 }
 
 /**
  * \brief           Skip (ignore; advance read pointer) buffer data
- * Marks data as read in the buffer and increases free memory for up to `len` bytes
+ * Marks data as read in the buffer and increases free memory for up to `len`
+ * bytes
  *
  * \note            Useful at the end of streaming transfer such as DMA
  * \param[in]       buff: Buffer handle
  * \param[in]       len: Number of bytes to skip and mark as read
  * \return          Number of bytes skipped
  */
-size_t
-lwrb_skip(LWRB_VOLATILE lwrb_t* buff, size_t len) {
-    size_t full;
+size_t lwrb_skip(LWRB_VOLATILE lwrb_t *buff, size_t len) {
+  size_t full;
 
-    if (!BUF_IS_VALID(buff) || len == 0) {
-        return 0;
-    }
+  if (!BUF_IS_VALID(buff) || len == 0) {
+    return 0;
+  }
 
-    full = lwrb_get_full(buff);
-    len = BUF_MIN(len, full);
-    buff->r += len;
-    if (buff->r >= buff->size) {
-        buff->r -= buff->size;
-    }
-    BUF_SEND_EVT(buff, LWRB_EVT_READ, len);
-    return len;
+  full = lwrb_get_full(buff);
+  len = BUF_MIN(len, full);
+  buff->r += len;
+  if (buff->r >= buff->size) {
+    buff->r -= buff->size;
+  }
+  BUF_SEND_EVT(buff, LWRB_EVT_READ, len);
+  return len;
 }
 
 /**
@@ -388,75 +383,71 @@ lwrb_skip(LWRB_VOLATILE lwrb_t* buff, size_t len) {
  * \param[in]       buff: Buffer handle
  * \return          Linear buffer start address
  */
-void*
-lwrb_get_linear_block_write_address(LWRB_VOLATILE lwrb_t* buff) {
-    if (!BUF_IS_VALID(buff)) {
-        return NULL;
-    }
-    return &buff->buff[buff->w];
+void *lwrb_get_linear_block_write_address(LWRB_VOLATILE lwrb_t *buff) {
+  if (!BUF_IS_VALID(buff)) {
+    return NULL;
+  }
+  return &buff->buff[buff->w];
 }
 
 /**
- * \brief           Get length of linear block address before it overflows for write operation
- * \param[in]       buff: Buffer handle
- * \return          Linear buffer size in units of bytes for write operation
+ * \brief           Get length of linear block address before it overflows for
+ * write operation \param[in]       buff: Buffer handle \return          Linear
+ * buffer size in units of bytes for write operation
  */
-size_t
-lwrb_get_linear_block_write_length(LWRB_VOLATILE lwrb_t* buff) {
-    size_t w, r, len;
+size_t lwrb_get_linear_block_write_length(LWRB_VOLATILE lwrb_t *buff) {
+  size_t w, r, len;
 
-    if (!BUF_IS_VALID(buff)) {
-        return 0;
-    }
+  if (!BUF_IS_VALID(buff)) {
+    return 0;
+  }
 
-    /* Use temporary values in case they are changed during operations */
-    w = buff->w;
-    r = buff->r;
-    if (w >= r) {
-        len = buff->size - w;
-        /*
-         * When read pointer is 0,
-         * maximal length is one less as if too many bytes
-         * are written, buffer would be considered empty again (r == w)
-         */
-        if (r == 0) {
-            /*
-             * Cannot overflow:
-             * - If r is not 0, statement does not get called
-             * - buff->size cannot be 0 and if r is 0, len is greater 0
-             */
-            --len;
-        }
-    } else {
-        len = r - w - 1;
+  /* Use temporary values in case they are changed during operations */
+  w = buff->w;
+  r = buff->r;
+  if (w >= r) {
+    len = buff->size - w;
+    /*
+     * When read pointer is 0,
+     * maximal length is one less as if too many bytes
+     * are written, buffer would be considered empty again (r == w)
+     */
+    if (r == 0) {
+      /*
+       * Cannot overflow:
+       * - If r is not 0, statement does not get called
+       * - buff->size cannot be 0 and if r is 0, len is greater 0
+       */
+      --len;
     }
-    return len;
+  } else {
+    len = r - w - 1;
+  }
+  return len;
 }
 
 /**
  * \brief           Advance write pointer in the buffer.
  * Similar to skip function but modifies write pointer instead of read
  *
- * \note            Useful when hardware is writing to buffer and application needs to increase number
- *                      of bytes written to buffer by hardware
- * \param[in]       buff: Buffer handle
- * \param[in]       len: Number of bytes to advance
- * \return          Number of bytes advanced for write operation
+ * \note            Useful when hardware is writing to buffer and application
+ * needs to increase number of bytes written to buffer by hardware \param[in]
+ * buff: Buffer handle \param[in]       len: Number of bytes to advance \return
+ * Number of bytes advanced for write operation
  */
-size_t
-lwrb_advance(LWRB_VOLATILE lwrb_t* buff, size_t len) {
-    size_t free;
+size_t lwrb_advance(LWRB_VOLATILE lwrb_t *buff, size_t len) {
+  size_t free;
 
-    if (!BUF_IS_VALID(buff) || len == 0) {
-        return 0;
-    }
+  if (!BUF_IS_VALID(buff) || len == 0) {
+    return 0;
+  }
 
-    free = lwrb_get_free(buff);
-    len = BUF_MIN(len, free);
-    buff->w += len;
-    if (buff->w >= buff->size) {
-        buff->w -= buff->size;
-    }
-    BUF_SEND_EVT(buff, LWRB_EVT_WRITE, len);
-    return len;
+  free = lwrb_get_free(buff);
+  len = BUF_MIN(len, free);
+  buff->w += len;
+  if (buff->w >= buff->size) {
+    buff->w -= buff->size;
+  }
+  BUF_SEND_EVT(buff, LWRB_EVT_WRITE, len);
+  return len;
 }
