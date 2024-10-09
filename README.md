@@ -35,3 +35,9 @@ Acitons are setup to build on commit and generate release on tag.  Below are the
 git tag v1.0.0  # Create a tag
 git push origin v1.0.0  # Push the tag to GitHub
 ```
+
+## Code formatting checks locally
+
+https://releases.llvm.org/download.html
+
+Using: https://github.com/llvm/llvm-project/releases/download/llvmorg-18.1.8/LLVM-18.1.8-win64.exe
