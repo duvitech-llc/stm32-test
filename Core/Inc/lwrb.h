@@ -80,25 +80,24 @@ struct lwrb;
  * \param[in]       bp: Number of bytes written or read (when used), depends on
  * event type
  */
-typedef void (*lwrb_evt_fn)(LWRB_VOLATILE struct lwrb *buff,
-                            lwrb_evt_type_t evt, size_t bp);
+typedef void (*lwrb_evt_fn)(LWRB_VOLATILE struct lwrb *buff, lwrb_evt_type_t evt, size_t bp);
 
 /**
  * \brief           Buffer structure
  */
 typedef struct lwrb {
 #if LWRB_USE_MAGIC
-  uint32_t magic1; /*!< Magic 1 word */
-#endif             /* LWRB_USE_MAGIC */
-  uint8_t *buff;   /*!< Pointer to buffer data.
-                       Buffer is considered initialized when `buff != NULL` and
-                      `size > 0` */
-  size_t size; /*!< Size of buffer data. Size of actual buffer is `1` byte less
-                  than value holds */
-  size_t r; /*!< Next read pointer. Buffer is considered empty when `r == w` and
-               full when `w == r - 1` */
-  size_t w; /*!< Next write pointer. Buffer is considered empty when `r == w`
-               and full when `w == r - 1` */
+  uint32_t magic1;    /*!< Magic 1 word */
+#endif                /* LWRB_USE_MAGIC */
+  uint8_t *buff;      /*!< Pointer to buffer data.
+                          Buffer is considered initialized when `buff != NULL` and
+                         `size > 0` */
+  size_t size;        /*!< Size of buffer data. Size of actual buffer is `1` byte less
+                         than value holds */
+  size_t r;           /*!< Next read pointer. Buffer is considered empty when `r == w` and
+                         full when `w == r - 1` */
+  size_t w;           /*!< Next write pointer. Buffer is considered empty when `r == w`
+                         and full when `w == r - 1` */
   lwrb_evt_fn evt_fn; /*!< Pointer to event callback function */
 #if LWRB_USE_MAGIC
   uint32_t magic2; /*!< Magic 2 word */
@@ -114,8 +113,7 @@ void lwrb_set_evt_fn(LWRB_VOLATILE lwrb_t *buff, lwrb_evt_fn fn);
 /* Read/Write functions */
 size_t lwrb_write(LWRB_VOLATILE lwrb_t *buff, const void *data, size_t btw);
 size_t lwrb_read(LWRB_VOLATILE lwrb_t *buff, void *data, size_t btr);
-size_t lwrb_peek(LWRB_VOLATILE lwrb_t *buff, size_t skip_count, void *data,
-                 size_t btp);
+size_t lwrb_peek(LWRB_VOLATILE lwrb_t *buff, size_t skip_count, void *data, size_t btp);
 
 /* Buffer size information */
 size_t lwrb_get_free(LWRB_VOLATILE lwrb_t *buff);

@@ -35,8 +35,7 @@ int _write(int fd, const void *buf, size_t count) {
       usart_start_tx_dma_transfer();
     }
   } else {
-    HAL_StatusTypeDef com_tx_status =
-        HAL_UART_Transmit(&DEBUG_UART, src, count, 10);
+    HAL_StatusTypeDef com_tx_status = HAL_UART_Transmit(&DEBUG_UART, src, count, 10);
     if (com_tx_status != HAL_OK) {
       Error_Handler();
     }
@@ -65,18 +64,15 @@ bool is_using_dma() { return bInit_dma; }
 
 static uint8_t usart_start_tx_dma_transfer(void) {
   if (usart_tx_dma_current_len == 0 &&
-      (usart_tx_dma_current_len =
-           lwrb_get_linear_block_read_length(&usart_tx_buff)) > 0) {
+      (usart_tx_dma_current_len = lwrb_get_linear_block_read_length(&usart_tx_buff)) > 0) {
 
     /* Limit maximal size to transmit at a time */
     if (usart_tx_dma_current_len > 32) {
       usart_tx_dma_current_len = 32;
     }
     bPrintfTransferComplete = false;
-    if (HAL_UART_Transmit_DMA(
-            &DEBUG_UART,
-            (uint8_t *)lwrb_get_linear_block_read_address(&usart_tx_buff),
-            usart_tx_dma_current_len) != HAL_OK) {
+    if (HAL_UART_Transmit_DMA(&DEBUG_UART, (uint8_t *)lwrb_get_linear_block_read_address(&usart_tx_buff),
+                              usart_tx_dma_current_len) != HAL_OK) {
       Error_Handler();
     }
   }
@@ -89,8 +85,7 @@ void logging_UART_ErrorCallback(UART_HandleTypeDef *huart) {}
 
 void logging_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
   bPrintfTransferComplete = true;
-  lwrb_skip(&usart_tx_buff,
-            usart_tx_dma_current_len); /* Data sent, ignore these */
+  lwrb_skip(&usart_tx_buff, usart_tx_dma_current_len); /* Data sent, ignore these */
   usart_tx_dma_current_len = 0;
   usart_start_tx_dma_transfer(); /* Try to send more data */
 }

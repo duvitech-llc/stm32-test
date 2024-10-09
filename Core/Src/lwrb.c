@@ -38,19 +38,18 @@
 #define BUF_MEMCPY memcpy
 
 #if LWRB_USE_MAGIC
-#define BUF_IS_VALID(b)                                                        \
-  ((b) != NULL && (b)->magic1 == 0xDEADBEEF && (b)->magic2 == ~0xDEADBEEF &&   \
-   (b)->buff != NULL && (b)->size > 0)
+#define BUF_IS_VALID(b)                                                                                                \
+  ((b) != NULL && (b)->magic1 == 0xDEADBEEF && (b)->magic2 == ~0xDEADBEEF && (b)->buff != NULL && (b)->size > 0)
 #else
 #define BUF_IS_VALID(b) ((b) != NULL && (b)->buff != NULL && (b)->size > 0)
 #endif /* LWRB_USE_MAGIC */
 #define BUF_MIN(x, y) ((x) < (y) ? (x) : (y))
 #define BUF_MAX(x, y) ((x) > (y) ? (x) : (y))
-#define BUF_SEND_EVT(b, type, bp)                                              \
-  do {                                                                         \
-    if ((b)->evt_fn != NULL) {                                                 \
-      (b)->evt_fn((b), (type), (bp));                                          \
-    }                                                                          \
+#define BUF_SEND_EVT(b, type, bp)                                                                                      \
+  do {                                                                                                                 \
+    if ((b)->evt_fn != NULL) {                                                                                         \
+      (b)->evt_fn((b), (type), (bp));                                                                                  \
+    }                                                                                                                  \
   } while (0)
 
 /**
@@ -208,8 +207,7 @@ size_t lwrb_read(LWRB_VOLATILE lwrb_t *buff, void *data, size_t btr) {
  * \param[in]       btp: Number of bytes to peek
  * \return          Number of bytes peeked and written to output array
  */
-size_t lwrb_peek(LWRB_VOLATILE lwrb_t *buff, size_t skip_count, void *data,
-                 size_t btp) {
+size_t lwrb_peek(LWRB_VOLATILE lwrb_t *buff, size_t skip_count, void *data, size_t btp) {
   size_t full, tocopy, r;
   uint8_t *d = data;
 

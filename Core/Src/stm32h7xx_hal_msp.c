@@ -297,8 +297,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart) {
     /** Initializes the peripherals clock
      */
     PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART3;
-    PeriphClkInitStruct.Usart234578ClockSelection =
-        RCC_USART234578CLKSOURCE_D2PCLK1;
+    PeriphClkInitStruct.Usart234578ClockSelection = RCC_USART234578CLKSOURCE_D2PCLK1;
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK) {
       Error_Handler();
     }
@@ -474,8 +473,7 @@ void HAL_PCD_MspDeInit(PCD_HandleTypeDef *hpcd) {
     PA11     ------> USB_OTG_FS_DM
     PA12     ------> USB_OTG_FS_DP
     */
-    HAL_GPIO_DeInit(GPIOA,
-                    USB_SOF_Pin | USB_VBUS_Pin | USB_DM_Pin | USB_DP_Pin);
+    HAL_GPIO_DeInit(GPIOA, USB_SOF_Pin | USB_VBUS_Pin | USB_DM_Pin | USB_DP_Pin);
 
     /* USER CODE BEGIN USB_OTG_FS_MspDeInit 1 */
 
