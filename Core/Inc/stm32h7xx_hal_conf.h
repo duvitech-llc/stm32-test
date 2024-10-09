@@ -161,8 +161,7 @@ extern "C" {
  * source frequency, this source is inserted directly through I2S_CKIN pad.
  */
 #if !defined(EXTERNAL_CLOCK_VALUE)
-#define EXTERNAL_CLOCK_VALUE 12288000UL /*!< Value of the External clock in    \
-                                           Hz*/
+#define EXTERNAL_CLOCK_VALUE 12288000UL /*!< Value of the External clock in Hz*/
 #endif                                  /* EXTERNAL_CLOCK_VALUE */
 
 /* Tip: To avoid modifying this file each time you need to use different HSE,
