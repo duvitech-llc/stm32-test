@@ -36,8 +36,23 @@ git tag v1.0.0  # Create a tag
 git push origin v1.0.0  # Push the tag to GitHub
 ```
 
-## Code formatting checks locally
+## Code formatting checks locally with pre-commit hooks
+
+Install clang format for your platform 
 
 https://releases.llvm.org/download.html
 
 Using: https://github.com/llvm/llvm-project/releases/download/llvmorg-18.1.8/LLVM-18.1.8-win64.exe
+
+
+Copy the appropriate script to the hooks directory
+
+Linux
+```
+cp scripts/pre-commit.sh .git/hooks/pre-commit
+```
+
+Windows
+```
+copy scripts/pre-commit.bat .git/hooks/
+```
