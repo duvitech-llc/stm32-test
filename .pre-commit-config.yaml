@@ -1,0 +1,10 @@
+repos:
+  - repo: local
+    hooks:
+      - id: clang-format
+        name: Clang-Format
+        entry: bash
+        args: ['-c', 'clang-format -i Core/Src/*.c Core/Inc/*.h']
+        language: system
+        files: \.(c|h)$
+        stages: [commit]
