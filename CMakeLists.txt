@@ -1,17 +1,13 @@
 cmake_minimum_required(VERSION 3.22)
 
-#
 # This file is generated only once,
 # and is not re-generated if converter is called multiple times.
-#
-# User is free to modify the file as much as necessary
-#
+# User is free to modify the file as much as necessary.
 
 # Setup compiler settings
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
-
 
 # Define the build type
 if(NOT CMAKE_BUILD_TYPE)
@@ -47,7 +43,6 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
-    # Add user sources here
     Core/Src/main.c
     Core/Src/lwrb.c  
     Core/Src/logging.c  
@@ -66,6 +61,26 @@ target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
 # Add linked libraries
 target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32cubemx
-
     # Add user defined libraries
+)
+
+# Paths for ELF, HEX, and BIN files
+set(ELF_FILE "${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}.elf")
+set(HEX_FILE "${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}.hex")
+set(BIN_FILE "${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}.bin")
+
+# Add custom command to create HEX file from ELF
+add_custom_command(
+    TARGET ${CMAKE_PROJECT_NAME}
+    POST_BUILD
+    COMMAND ${CMAKE_OBJCOPY} -O ihex $<TARGET_FILE:${CMAKE_PROJECT_NAME}> ${HEX_FILE}
+    COMMENT "Generating HEX file"
+)
+
+# Add custom command to create BIN file from ELF
+add_custom_command(
+    TARGET ${CMAKE_PROJECT_NAME}
+    POST_BUILD
+    COMMAND ${CMAKE_OBJCOPY} -O binary $<TARGET_FILE:${CMAKE_PROJECT_NAME}> ${BIN_FILE}
+    COMMENT "Generating BIN file"
 )
