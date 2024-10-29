@@ -49,6 +49,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./build/stm32-test.elf   # Path to your build artifact
-        asset_name: stm32-test.elf
+        asset_path: ./build/stm32-test.bin   # Path to your build artifact
+        asset_name: stm32-test.bin
         asset_content_type: application/octet-stream
