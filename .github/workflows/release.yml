@@ -5,6 +5,11 @@ on:
     tags:
       - 'v*'   # This triggers when a tag starting with 'v' is pushed (e.g., v1.0.0)
   workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag name for the build (e.g., v1.0.0)'
+        required: false
+        default: 'v1.0.0_test'
     
 jobs:
   release:
